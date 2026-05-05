@@ -1,0 +1,3 @@
+hsa-miR-22-3p
+hsa-miR-192-5p
+hsa-miR-200c-3p
