@@ -1,6 +1,6 @@
 # miRNA Experiment Search
 
-A flexible Python pipeline to search public NCBI metadata sources for experiments involving selected miRNAs, cell lines, species, assay types, perturbation types, and control conditions.
+A Python pipeline to search public NCBI metadata sources for experiments involving selected miRNAs, cell lines, species, assay types, perturbation types, and control conditions.
 
 The tool currently searches **GEO** and **SRA** through the NCBI Entrez E-utilities API and produces clean candidate tables plus summary statistics.
 
@@ -428,21 +428,4 @@ Run the pipeline:
 uv run python run_search.py --config config/search.yaml
 ```
 
-Check Git status:
 
-```bash
-git status
-```
-
-Commit changes:
-
-```bash
-git add .
-git commit -m "Describe your change"
-```
-
----
-
-## Citation and Usage
-
-This repository is intended as a metadata search and triage tool for miRNA-related public experiments. It should be used as a first-pass discovery workflow before manual curation and downstream analysis.
