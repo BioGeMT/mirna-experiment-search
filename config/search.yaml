@@ -1,0 +1,9 @@
+# Available experiment type options:
+#   RNA-seq
+#   small_RNA-seq
+#   CLIP
+#   CLASH
+#   qPCR
+#   microarray
+#   proteomics
+#   reporter_assay
