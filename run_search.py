@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import argparse
 from pathlib import Path
 from itertools import product
 
@@ -23,6 +24,160 @@ def as_list(value):
     if isinstance(value, list):
         return value
     return [value]
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Search GEO/SRA for miRNA-related experiments using configurable filters."
+    )
+
+    parser.add_argument(
+        "--config",
+        default="config/search.yaml",
+        help="Path to YAML config file.",
+    )
+
+    parser.add_argument(
+        "--mirnas-file",
+        default=None,
+        help="Optional TXT file with one miRNA per line. Overrides config.",
+    )
+
+    parser.add_argument(
+        "--cell-lines-file",
+        default=None,
+        help="Optional TXT file with one cell line per line. Overrides config.",
+    )
+
+    parser.add_argument(
+        "--sources",
+        nargs="+",
+        default=None,
+        choices=["GEO", "SRA"],
+        help="Sources to search. Overrides config.",
+    )
+
+    parser.add_argument(
+        "--species",
+        default=None,
+        help='Species filter, e.g. "Homo sapiens". Overrides config.',
+    )
+
+    parser.add_argument(
+        "--experiment-types",
+        nargs="+",
+        default=None,
+        help="Experiment type filters, e.g. RNA-seq CLIP CLASH qPCR. Overrides config.",
+    )
+
+    parser.add_argument(
+        "--perturbation-types",
+        nargs="+",
+        default=None,
+        help="Perturbation filters, e.g. overexpression knockdown knockout. Overrides config.",
+    )
+
+    parser.add_argument(
+        "--require-control",
+        action="store_true",
+        help="Require control-like keyword in metadata.",
+    )
+
+    parser.add_argument(
+        "--no-require-control",
+        action="store_true",
+        help="Disable require_control even if enabled in config.",
+    )
+
+    parser.add_argument(
+        "--date-from",
+        type=int,
+        default=None,
+        help="Publication date lower bound year. Overrides config.",
+    )
+
+    parser.add_argument(
+        "--date-to",
+        type=int,
+        default=None,
+        help="Publication date upper bound year. Overrides config.",
+    )
+
+    parser.add_argument(
+        "--retmax",
+        type=int,
+        default=None,
+        help="Max Entrez records per query/source. Overrides config.",
+    )
+
+    parser.add_argument(
+        "--sleep-seconds",
+        type=float,
+        default=None,
+        help="Delay between Entrez requests. Overrides config.",
+    )
+
+    parser.add_argument(
+        "--outdir",
+        default=None,
+        help="Output directory. Overrides config.",
+    )
+
+    parser.add_argument(
+        "--include-precursor-terms",
+        action="store_true",
+        help="Do not exclude precursor/primary miRNA terms.",
+    )
+
+    return parser.parse_args()
+
+
+def apply_cli_overrides(config, args):
+    config = dict(config)
+
+    if args.mirnas_file is not None:
+        config["mirnas_file"] = args.mirnas_file
+
+    if args.cell_lines_file is not None:
+        config["cell_lines_file"] = args.cell_lines_file
+
+    if args.sources is not None:
+        config["sources"] = args.sources
+
+    if args.species is not None:
+        config["species"] = args.species
+
+    if args.experiment_types is not None:
+        config["experiment_types"] = args.experiment_types
+
+    if args.perturbation_types is not None:
+        config["perturbation_types"] = args.perturbation_types
+
+    if args.require_control:
+        config["require_control"] = True
+
+    if args.no_require_control:
+        config["require_control"] = False
+
+    if args.date_from is not None:
+        config["date_from"] = args.date_from
+
+    if args.date_to is not None:
+        config["date_to"] = args.date_to
+
+    if args.retmax is not None:
+        config["retmax"] = args.retmax
+
+    if args.sleep_seconds is not None:
+        config["sleep_seconds"] = args.sleep_seconds
+
+    if args.outdir is not None:
+        config["outdir"] = args.outdir
+
+    if args.include_precursor_terms:
+        config["exclude_precursor_terms"] = False
+
+    return config
 
 
 def search_combination(
@@ -117,8 +272,10 @@ def apply_post_filters(df, config):
 
 
 def main():
-    config_path = "config/search.yaml"
-    config = load_yaml(config_path)
+    args = parse_args()
+
+    config = load_yaml(args.config)
+    config = apply_cli_overrides(config, args)
 
     outdir = Path(config.get("outdir", "results"))
     outdir.mkdir(parents=True, exist_ok=True)
@@ -128,14 +285,13 @@ def main():
 
     sources = as_list(config.get("sources")) or ["GEO", "SRA"]
 
-    # Allow searches without miRNA or without cell line.
     mirna_values = mirnas if mirnas else [None]
     cell_line_values = cell_lines if cell_lines else [None]
 
     all_rows = []
 
     print("=== miRNA Experiment Search ===")
-    print(f"Config: {config_path}")
+    print(f"Config: {args.config}")
     print(f"Sources: {', '.join(sources)}")
     print(f"miRNAs: {len(mirnas)}")
     print(f"Cell lines: {len(cell_lines)}")
@@ -143,6 +299,9 @@ def main():
     print(f"Perturbation types: {as_list(config.get('perturbation_types'))}")
     print(f"Species: {config.get('species')}")
     print(f"Require control: {config.get('require_control')}")
+    print(f"Date from: {config.get('date_from')}")
+    print(f"Date to: {config.get('date_to')}")
+    print(f"Outdir: {outdir}")
 
     for source, mirna, cell_line in product(sources, mirna_values, cell_line_values):
         try:
@@ -154,7 +313,10 @@ def main():
             )
             all_rows.extend(rows)
         except Exception as exc:
-            print(f"WARNING: search failed for source={source}, mirna={mirna}, cell_line={cell_line}: {exc}")
+            print(
+                f"WARNING: search failed for "
+                f"source={source}, mirna={mirna}, cell_line={cell_line}: {exc}"
+            )
 
     if all_rows:
         candidates = pd.DataFrame(all_rows)

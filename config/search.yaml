@@ -14,7 +14,6 @@ cell_lines_file: "data/cell_lines.txt"
 #   SRA
 sources:
   - GEO
-  - SRA
 
 # Species filter.
 # Available built-in options:
