@@ -33,40 +33,38 @@ def and_join(groups: list[str]) -> str:
 
 def mirna_aliases(mirna: str) -> list[str]:
     """
-    Generate safe mature-miRNA aliases.
+    Generate aliases for mature miRNAs only.
 
     Examples:
-      hsa-miR-22-3p -> hsa-miR-22-3p, miR-22-3p, miR-22, MIR22
-      hsa-miR-129-2-3p -> hsa-miR-129-2-3p, miR-129-2-3p, miR-129-2, miR-129
+      hsa-miR-22-3p -> hsa-miR-22-3p, miR-22-3p, MIR22-3p, mir-22-3p
+      hsa-miR-200c-3p -> hsa-miR-200c-3p, miR-200c-3p, MIR200c-3p, mir-200c-3p
 
-    This intentionally avoids generic aliases like miR or mir.
+    Important:
+      This function intentionally does NOT remove the mature arm suffix
+      (-3p / -5p), because the pipeline is intended to retrieve results
+      for mature miRNAs only.
     """
     mirna = str(mirna).strip()
 
     if not mirna:
         return []
 
-    x = mirna.replace("hsa-", "")
+    aliases = {mirna}
 
-    aliases = {mirna, x}
-
-    # Remove mature-arm suffix: miR-22-3p -> miR-22
-    base = re.sub(r"-(3p|5p)$", "", x)
-    aliases.add(base)
-
-    # Locus-style names: miR-129-2-3p -> miR-129
-    match = re.match(r"^(miR-\d+[a-z]?)-\d+-(3p|5p)$", x)
-    if match:
-        aliases.add(match.group(1))
+    # Remove organism prefix only, e.g. hsa-miR-22-3p -> miR-22-3p
+    if mirna.startswith("hsa-"):
+        aliases.add(mirna.replace("hsa-", "", 1))
 
     expanded = set()
 
     for alias in aliases:
         expanded.add(alias)
 
+        # miR-22-3p -> MIR22-3p
         if alias.startswith("miR-"):
-            expanded.add(alias.replace("miR-", "MIR"))
+            expanded.add(alias.replace("miR-", "MIR", 1))
 
+        # miR-22-3p -> mir-22-3p
         if alias.startswith("miR"):
             expanded.add(alias.replace("miR", "mir", 1))
 
