@@ -350,6 +350,15 @@ def main():
     by_mirna_path = outdir / "summary_by_mirna.tsv"
     by_accession_path = outdir / "summary_by_accession.tsv"
 
+    # Remove internal query field from final candidate output.
+    if "search_query" in candidates.columns:
+        candidates = candidates.drop(columns=["search_query"])
+
+    # Move title to the last column.
+    if "title" in candidates.columns:
+        cols = [c for c in candidates.columns if c != "title"] + ["title"]
+        candidates = candidates[cols]
+
     candidates.to_csv(candidate_path, sep="\t", index=False)
 
     summary = make_summary_statistics(candidates)
