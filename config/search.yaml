@@ -1,4 +1,30 @@
-# Available experiment type options:
+# miRNA Experiment Search configuration
+#
+# Users select high-level categories here.
+# The pipeline expands them internally using src/vocab.py.
+
+# Optional input files.
+# Leave null if not used.
+mirnas_file: "data/mirnas.txt"
+cell_lines_file: "data/cell_lines.txt"
+
+# Search sources.
+# Available:
+#   GEO
+#   SRA
+sources:
+  - GEO
+  - SRA
+
+# Species filter.
+# Available built-in options:
+#   Homo sapiens
+#   Mus musculus
+#   Rattus norvegicus
+species: "Homo sapiens"
+
+# Experiment type filters.
+# Available:
 #   RNA-seq
 #   small_RNA-seq
 #   CLIP
@@ -7,3 +33,33 @@
 #   microarray
 #   proteomics
 #   reporter_assay
+experiment_types:
+  - RNA-seq
+
+# Perturbation filters.
+# Available:
+#   overexpression
+#   knockdown
+#   knockout
+#   perturbation_any
+#
+# Leave empty [] if no perturbation filter should be applied.
+perturbation_types: []
+
+# Require a control-like keyword in the metadata.
+require_control: false
+
+# Date range.
+# Use null to disable.
+date_from: null
+date_to: null
+
+# Search settings.
+retmax: 20
+sleep_seconds: 0.34
+
+# Exclude precursor/primary miRNA-focused studies.
+exclude_precursor_terms: true
+
+# Output directory.
+outdir: "results"
