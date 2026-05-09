@@ -1,0 +1,16 @@
+name: geo-rna-perturbation
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - r-base>=4.4
+  - bioconductor-geometadb
+  - bioconductor-geoquery
+  - r-rsqlite
+  - r-dbi
+  - r-dplyr
+  - r-dbplyr
+  - r-readr
+  - r-stringr
+  - r-optparse
