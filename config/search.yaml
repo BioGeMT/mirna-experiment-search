@@ -6,9 +6,9 @@
 # Optional input files.
 # Leave null if not used.
 mirnas_file: "data/mirnas.txt"
-cell_lines_file: "data/cell_lines.txt"
+#cell_lines_file: "data/cell_lines.txt"
 
-# Search sources.
+# Search sources. 
 # Available:
 #   GEO
 #   SRA
@@ -50,11 +50,11 @@ require_control: false
 
 # Date range.
 # Use null to disable.
-date_from: null
+date_from: 2025
 date_to: null
 
 # Search settings.
-retmax: 20
+retmax: 200000
 sleep_seconds: 0.34
 
 # Exclude precursor/primary miRNA-focused studies.
